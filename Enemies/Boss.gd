@@ -83,8 +83,9 @@ func _on_HurtBox_area_entered(area):
 		hurtbox.create_hit_effect()
 		hurtbox.start_invincibility(0.4)
 		$AudioStreamPlayer.play()
-	if HEALTH <= 0:
+	if HEALTH <= 0 and not dead:
 		dead = true
+		Global.add_experience(100)
 		queue_free()
 		var enemyDeathEffect = EnemyDeathEffect.instance()
 		get_parent().add_child(enemyDeathEffect)

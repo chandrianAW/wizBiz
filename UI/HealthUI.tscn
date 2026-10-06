@@ -78,6 +78,20 @@ texture = ExtResource( 2 )
 expand = true
 stretch_mode = 2
 
+[node name="Experience" type="Label" parent="HealthUI"]
+margin_left = 117.0
+margin_top = 1.0
+margin_right = 190.0
+margin_bottom = 16.0
+custom_fonts/font = ExtResource( 6 )
+custom_colors/font_color = Color( 1, 0.86, 0.48, 1 )
+custom_colors/font_color_shadow = Color( 0, 0, 0, 1 )
+text = "XP 0"
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
 [node name="AnimationPlayer" type="AnimationPlayer" parent="HealthUI"]
 anims/FadeIn = SubResource( 1 )
 anims/FadeOut = SubResource( 2 )

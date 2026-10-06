@@ -7,12 +7,14 @@ var health_bar           = 0 setget set_health_bar
 onready var heartUIFull  = $HeartUIFull
 onready var heartUIEmpty = $HeartUIEmpty
 onready var healthBar    = $HealthBar/Bar
+onready var experienceLabel = $Experience
 
 func _ready():
 
 	self.max_hearts      = Global.max_health
 	self.hearts          = Global.health
 	self.health_bar      = Global.health_bar
+	set_experience(Global.experience)
 	_fade_in()
 	_on_update_status()
 
@@ -29,6 +31,7 @@ func _ready():
 	Global.connect("health_bar_size", self, "set_health_bar")
 # warning-ignore:return_value_discarded
 	Global.connect("update_status", self, "_on_update_status")
+	Global.connect("experience_changed", self, "set_experience")
 
 ###############################################################
 func set_hearts(value):
@@ -47,6 +50,9 @@ func set_health_bar(value):
 		$HealthBar.visible = false
 	else:
 		$HealthBar.visible = true
+
+func set_experience(value):
+	experienceLabel.text = "XP " + str(value)
 
 ###################################################### Countdown ###
 func _on_repellent_time():

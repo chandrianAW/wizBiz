@@ -6,6 +6,7 @@ var health_bar       = 0 setget set_health_bar
 
 var direction        = Vector2.ZERO
 var player           = "Player"
+var experience       = 0
 var visited          = ["Level1"]
 var key_founded      = []
 var opened_doors     = []
@@ -57,10 +58,15 @@ signal max_health_changed(value)
 signal health_bar_size(value)
 signal repellent_time
 signal update_status
+signal experience_changed(value)
 
 ###################################################################
 func _ready():
 	self.health = max_health
+
+func add_experience(amount):
+	experience += amount
+	emit_signal("experience_changed", experience)
 
 ######################################################## Health ###
 func set_max_health(value):
@@ -141,6 +147,7 @@ func save_game():
 		"max_health"       : max_health,
 		"health"           : health,
 		"player"           : player,
+		"experience"       : experience,
 		"visited"          : visited,
 		"honeycombs"       : honeycombs,
 		"gem"              : gem,
@@ -187,6 +194,8 @@ func load_game():
 		max_health       = data.max_health
 		health           = data.health
 		player           = data.player
+		experience       = int(data.get("experience", 0))
+		emit_signal("experience_changed", experience)
 		visited          = data.visited
 		honeycombs       = data.honeycombs
 		gem              = data.gem
