@@ -1,4 +1,4 @@
-[gd_scene load_steps=114 format=2]
+[gd_scene load_steps=115 format=2]
 
 [ext_resource path="res://Music and Sounds/Saber.ogg" type="AudioStream" id=1]
 [ext_resource path="res://Hitboxes and Hurtboxes/HurtBox.tscn" type="PackedScene" id=2]
@@ -12,6 +12,7 @@
 [ext_resource path="res://Music and Sounds/Punch.ogg" type="AudioStream" id=10]
 [ext_resource path="res://Player/Pickaxe.png" type="Texture" id=11]
 [ext_resource path="res://Player/Unarmed.png" type="Texture" id=12]
+[ext_resource path="res://Player/Wizard.png" type="Texture" id=19]
 [ext_resource path="res://Music and Sounds/Rock.ogg" type="AudioStream" id=13]
 [ext_resource path="res://Player/Axe.png" type="Texture" id=14]
 [ext_resource path="res://Music and Sounds/Tree.ogg" type="AudioStream" id=15]
@@ -2446,7 +2447,7 @@ hframes = 3
 [node name="Sprite" type="Sprite" parent="."]
 material = SubResource( 1 )
 position = Vector2( 0, -10 )
-texture = ExtResource( 12 )
+texture = ExtResource( 19 )
 hframes = 64
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]

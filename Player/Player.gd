@@ -7,7 +7,10 @@ onready var animationState       = animationTree.get("parameters/playback")
 onready var hurtbox              = $HurtBox
 onready var blinkAnimationPlayer = $BlinkAnimationPlayer
 
-onready var Player               = preload("res://Player/Unarmed.png")
+const MagicBeam = preload("res://Player/MagicBeam.tscn")
+const MAX_CHARGE_TIME = 2.5
+
+onready var Player               = preload("res://Player/Wizard.png")
 onready var Ledi                 = preload("res://Player/Ledi.png")
 onready var Lyu                  = preload("res://Player/Lyu.png")
 onready var Legan                = preload("res://Player/Legan.png")
@@ -22,6 +25,8 @@ var velocity                     = Vector2.ZERO
 var roll_vector                  = Vector2.DOWN
 var can_move                     = true 
 var can_attack                   = true 
+var is_charging_magic            = false
+var magic_charge_time            = 0.0
 
 var state                        = MOVE
 enum { MOVE, ROLL, ATTACK, TRANSITION,}
@@ -34,6 +39,9 @@ func _ready():
 	swordHitbox.knockback_vector = roll_vector
 	animationTree.active         = true
 	transformation()
+	if Global.player == "Player":
+		animationTree.active = false
+		animationPlayer.play("IdleDown")
 	randomize()
 #______________________________________ Connecting Signals ___
 # warning-ignore:return_value_discarded
@@ -54,6 +62,7 @@ func _process(delta):
 					   attack_state()
 			TRANSITION:
 					   transition_state()
+	_update_magic_charge(delta)
 	_invisible()
 
 ###################################################### Movement ###
@@ -65,20 +74,29 @@ func move_state(delta):
 	input_vector     = input_vector.normalized()
 
 	if input_vector != Vector2.ZERO:
-		roll_vector  = input_vector
-		swordHitbox.knockback_vector = input_vector
-		animationTree.set("parameters/Idle/blend_position",         input_vector)
-		animationTree.set("parameters/Run/blend_position",          input_vector)
-		animationTree.set("parameters/Roll/blend_position",         input_vector)
-		animationTree.set("parameters/PlayerAttack/blend_position", input_vector)
-		animationTree.set("parameters/LediAttack/blend_position",   input_vector)
-		animationTree.set("parameters/LeganAttack/blend_position",  input_vector)
-		animationTree.set("parameters/LyuAttack/blend_position",    input_vector)
-		animationState.travel("Run")
+		var facing_vector = input_vector
+		if Global.player == "Player":
+			facing_vector = Vector2(sign(input_vector.x), 0) if abs(input_vector.x) > abs(input_vector.y) else Vector2(0, sign(input_vector.y))
+		roll_vector  = facing_vector
+		swordHitbox.knockback_vector = facing_vector
+		if Global.player == "Player":
+			_play_wizard_animation("Run")
+		else:
+			animationTree.set("parameters/Idle/blend_position",         input_vector)
+			animationTree.set("parameters/Run/blend_position",          input_vector)
+			animationTree.set("parameters/Roll/blend_position",         input_vector)
+			animationTree.set("parameters/PlayerAttack/blend_position", input_vector)
+			animationTree.set("parameters/LediAttack/blend_position",   input_vector)
+			animationTree.set("parameters/LeganAttack/blend_position",  input_vector)
+			animationTree.set("parameters/LyuAttack/blend_position",    input_vector)
+			animationState.travel("Run")
 		velocity     = velocity.move_toward(input_vector * MAX_SPEED, ACCELERATION * delta)
 
 	else:
-		animationState.travel("Idle")
+		if Global.player == "Player":
+			_play_wizard_animation("Idle")
+		else:
+			animationState.travel("Idle")
 		velocity = velocity.move_toward(Vector2.ZERO, FRICTION * delta)
 
 	move()
@@ -86,17 +104,87 @@ func move_state(delta):
 	if can_attack == true:
 		if Input.is_action_just_pressed("ui_roll"):
 			state = ROLL
-		if Input.is_action_just_pressed("ui_attack"):
+		if Global.player != "Player" and Input.is_action_just_pressed("ui_attack"):
 			state = ATTACK
 			_power()
 
 func move():
 	velocity = move_and_slide(velocity)
 
+func _input(event):
+	if Global.player != "Player" or not can_move:
+		return
+	if not (event is InputEventKey and event.pressed and not event.echo):
+		return
+
+	var facing = Vector2.ZERO
+	if event.is_action_pressed("ui_up"):
+		facing = Vector2.UP
+	elif event.is_action_pressed("ui_down"):
+		facing = Vector2.DOWN
+	elif event.is_action_pressed("ui_left"):
+		facing = Vector2.LEFT
+	elif event.is_action_pressed("ui_right"):
+		facing = Vector2.RIGHT
+	if facing != Vector2.ZERO:
+		roll_vector = facing
+		swordHitbox.knockback_vector = facing
+		_play_wizard_animation("Run")
+
+func _direction_suffix(facing):
+	if abs(facing.x) > abs(facing.y):
+		return "Right" if facing.x > 0 else "Left"
+	return "Down" if facing.y > 0 else "Up"
+
+func _play_wizard_animation(animation_prefix):
+	var animation_name = animation_prefix + _direction_suffix(roll_vector)
+	if animationPlayer.current_animation != animation_name:
+		animationPlayer.play(animation_name)
+
+func _update_magic_charge(delta):
+	if Global.player != "Player" or not can_move or not can_attack:
+		_cancel_magic_charge()
+		return
+
+	if Input.is_action_pressed("ui_attack"):
+		is_charging_magic = true
+		magic_charge_time = min(magic_charge_time + delta, MAX_CHARGE_TIME)
+		update()
+	elif is_charging_magic:
+		_fire_magic_beam()
+
+func _fire_magic_beam():
+	var charge_ratio = clamp(magic_charge_time / MAX_CHARGE_TIME, 0.0, 1.0)
+	var beam = MagicBeam.instance()
+	add_child(beam)
+	beam.position = Vector2(0, -8) + roll_vector * 15.0
+	beam.configure(roll_vector, charge_ratio)
+	is_charging_magic = false
+	magic_charge_time = 0.0
+	update()
+
+func _cancel_magic_charge():
+	is_charging_magic = false
+	magic_charge_time = 0.0
+	update()
+
+func _draw():
+	if not is_charging_magic:
+		return
+	var charge_ratio = clamp(magic_charge_time / MAX_CHARGE_TIME, 0.0, 1.0)
+	var center = Vector2(0, -49)
+	var color = Color(0.36, 0.92, 1.0).linear_interpolate(Color(1.0, 0.82, 0.4), charge_ratio)
+	draw_circle(center, 4.0 + charge_ratio * 4.0, Color(color.r, color.g, color.b, 0.2))
+	draw_arc(center, 8.0, -PI / 2.0, -PI / 2.0 + PI * 2.0 * charge_ratio, 32, color, 2.0, true)
+	draw_circle(center, 2.0 + charge_ratio * 2.0, Color(0.9, 1.0, 1.0))
+
 ################################################# Roll & Attack ###
 func roll_state():
 	velocity = roll_vector * ROLL_SPEED
-	animationState.travel("Roll")
+	if Global.player == "Player":
+		_play_wizard_animation("Roll")
+	else:
+		animationState.travel("Roll")
 	move()
 
 func roll_animation_finished():
