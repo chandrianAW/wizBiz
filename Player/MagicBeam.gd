@@ -12,7 +12,7 @@ var hit_targets = {}
 
 var beam_length = 32.0
 var beam_width = 2.0
-const HITBOX_WIDTH = 3.0
+const HITBOX_WIDTH = 1.0
 
 onready var collision_shape = $CollisionShape2D
 
