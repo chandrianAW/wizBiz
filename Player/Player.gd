@@ -23,6 +23,7 @@ var ROLL_SPEED                   = 120
 
 var velocity                     = Vector2.ZERO
 var roll_vector                  = Vector2.DOWN
+var beam_direction               = Vector2.DOWN
 var can_move                     = true 
 var can_attack                   = true 
 var is_charging_magic            = false
@@ -76,6 +77,7 @@ func move_state(delta):
 	if input_vector != Vector2.ZERO:
 		var facing_vector = input_vector
 		if Global.player == "Player":
+			beam_direction = input_vector
 			facing_vector = Vector2(sign(input_vector.x), 0) if abs(input_vector.x) > abs(input_vector.y) else Vector2(0, sign(input_vector.y))
 		roll_vector  = facing_vector
 		swordHitbox.knockback_vector = facing_vector
@@ -128,6 +130,7 @@ func _input(event):
 		facing = Vector2.RIGHT
 	if facing != Vector2.ZERO:
 		roll_vector = facing
+		beam_direction = facing
 		swordHitbox.knockback_vector = facing
 		_play_wizard_animation("Run")
 
@@ -157,8 +160,8 @@ func _fire_magic_beam():
 	var charge_ratio = clamp(magic_charge_time / MAX_CHARGE_TIME, 0.0, 1.0)
 	var beam = MagicBeam.instance()
 	add_child(beam)
-	beam.position = roll_vector * 8.0
-	beam.configure(roll_vector, charge_ratio)
+	beam.position = beam_direction * 8.0
+	beam.configure(beam_direction, charge_ratio)
 	is_charging_magic = false
 	magic_charge_time = 0.0
 	update()
