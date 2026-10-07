@@ -17,6 +17,8 @@ const HITBOX_WIDTH = 3.0
 onready var collision_shape = $CollisionShape2D
 
 func _ready():
+	scale = Vector2.ONE
+	collision_shape.scale = Vector2.ONE
 	collision_shape.shape = collision_shape.shape.duplicate()
 
 func configure(facing, charge):
