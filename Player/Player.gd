@@ -111,6 +111,35 @@ func move_state(delta):
 func move():
 	velocity = move_and_slide(velocity)
 
+func _get_wizard_display_width():
+	var wizard_sprite = $Sprite
+	if wizard_sprite.texture == null:
+		return 1.0
+
+	var image = wizard_sprite.texture.get_data()
+	var columns = max(wizard_sprite.hframes, 1)
+	if image == null:
+		return float(wizard_sprite.texture.get_width()) / columns * abs(wizard_sprite.scale.x)
+
+	image.lock()
+	var rows = max(wizard_sprite.vframes, 1)
+	var frame_width = int(image.get_width() / columns)
+	var frame_height = int(image.get_height() / rows)
+	var frame = clamp(wizard_sprite.frame, 0, columns * rows - 1)
+	var frame_left = int(frame % columns) * frame_width
+	var frame_top = int(frame / columns) * frame_height
+	var min_x = frame_width
+	var max_x = -1
+	for y in range(frame_top, frame_top + frame_height):
+		for x in range(frame_left, frame_left + frame_width):
+			if image.get_pixel(x, y).a > 0.08:
+				min_x = min(min_x, x - frame_left)
+				max_x = max(max_x, x - frame_left)
+	image.unlock()
+	if max_x < min_x:
+		return float(frame_width) * abs(wizard_sprite.scale.x)
+	return float(max_x - min_x + 1) * abs(wizard_sprite.scale.x)
+
 func _input(event):
 	if Global.player != "Player" or not can_move:
 		return
@@ -158,7 +187,7 @@ func _fire_magic_beam():
 	var beam = MagicBeam.instance()
 	add_child(beam)
 	beam.position = roll_vector * 8.0
-	beam.configure(roll_vector, charge_ratio)
+	beam.configure(roll_vector, charge_ratio, _get_wizard_display_width())
 	is_charging_magic = false
 	magic_charge_time = 0.0
 	update()
