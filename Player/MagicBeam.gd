@@ -7,6 +7,7 @@ var charge_ratio = 0.0
 var beam_length = 32.0
 var beam_width = 4.0
 const WIZARD_WIDTH = 22.0 / 3.0
+const HITBOX_WIDTH = WIZARD_WIDTH / 3.0
 var beam_phase = 0.0
 var lifetime = 0.2
 var full_lifetime = 0.2
@@ -30,7 +31,7 @@ func configure(facing, charge):
 	beam_width = WIZARD_WIDTH * (0.85 + charge_ratio * 0.15)
 	lifetime = 0.3 + charge_ratio * 1.2
 	full_lifetime = lifetime
-	collision_shape.shape.extents = Vector2(beam_length * 0.5, WIZARD_WIDTH * 0.5)
+	collision_shape.shape.extents = Vector2(beam_length * 0.5, HITBOX_WIDTH * 0.5)
 	collision_shape.position = direction * (beam_length * 0.5)
 	collision_shape.rotation = direction.angle()
 	update()
@@ -47,6 +48,9 @@ func _physics_process(delta):
 	update()
 	for area in get_overlapping_areas():
 		if area.get("invincible") == true:
+			continue
+		var distance_along_beam = (area.global_position - global_position).dot(direction)
+		if distance_along_beam < 0.0 or distance_along_beam > beam_length:
 			continue
 		var target = area.get_parent()
 		var target_id = target.get_instance_id()
