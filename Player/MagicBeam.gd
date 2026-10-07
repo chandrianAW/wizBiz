@@ -29,10 +29,8 @@ func configure(facing, charge):
 	beam_width = 3.0 + charge_ratio * 21.0
 	lifetime = 0.3 + charge_ratio * 1.2
 	full_lifetime = lifetime
-	var visible_width = beam_width + 4.0
-	var end_cap = beam_width * 0.65
-	collision_shape.shape.extents = Vector2((beam_length + end_cap) * 0.5, visible_width * 0.5)
-	collision_shape.position = Vector2((beam_length + end_cap) * 0.5, 0.0)
+	collision_shape.shape.extents = Vector2(beam_length * 0.5, beam_width * 0.5)
+	collision_shape.position = Vector2(beam_length * 0.5, 0.0)
 	update()
 
 func _process(delta):
