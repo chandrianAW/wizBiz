@@ -4,6 +4,7 @@ var direction = Vector2.DOWN
 var knockback_vector = Vector2.DOWN
 var damage = 1
 var charge_ratio = 0.0
+const HITBOX_WIDTH = 1.0
 const OUTER_WIDTH = 3.0
 var beam_phase = 0.0
 var lifetime = 0.2
@@ -11,8 +12,7 @@ var full_lifetime = 0.2
 var hit_targets = {}
 
 var beam_length = 32.0
-var beam_width = 2.0
-const HITBOX_WIDTH = 1.0
+var beam_width = 4.0
 
 onready var collision_shape = $CollisionShape2D
 
@@ -34,8 +34,7 @@ func configure(facing, charge):
 	beam_width = 2.0 + charge_ratio * 0.5
 	lifetime = 0.3 + charge_ratio * 1.2
 	full_lifetime = lifetime
-	var hitbox_length = beam_length - 5.0
-	collision_shape.shape.extents = Vector2(hitbox_length * 0.5, HITBOX_WIDTH * 0.5)
+	collision_shape.shape.extents = Vector2(beam_length * 0.5, HITBOX_WIDTH * 0.5)
 	collision_shape.position = direction * (beam_length * 0.5)
 	collision_shape.rotation = direction.angle()
 	update()
@@ -71,7 +70,8 @@ func _draw():
 	var start = direction * 4.0
 	var end = direction * (beam_length - 4.0)
 	draw_line(start, end, Color(color.r, color.g, color.b, 0.14 * opacity), OUTER_WIDTH, true)
-	draw_line(start, end, Color(color.r, color.g, color.b, 0.42 * opacity), beam_width, true)
-	draw_line(start, end, Color(color.r, color.g, color.b, opacity), 1.0, true)
-	draw_line(start - perpendicular, end - perpendicular, Color(0.92, 1.0, 0.96, 0.88 * opacity), 1.0, true)
+	draw_line(start, end, Color(color.r, color.g, color.b, 0.42 * opacity), beam_width * 0.72, true)
+	draw_line(start, end, Color(color.r, color.g, color.b, opacity), beam_width * 0.42, true)
+	draw_line(start - perpendicular, end - perpendicular, Color(0.92, 1.0, 0.96, 0.88 * opacity), max(1.0, beam_width * 0.18), true)
 	draw_circle(end, 1.5, Color(color.r, color.g, color.b, opacity))
+	draw_circle(end, max(1.0, beam_width * 0.2), Color(1.0, 1.0, 0.94, opacity))
