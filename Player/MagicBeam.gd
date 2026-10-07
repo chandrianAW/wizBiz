@@ -4,8 +4,7 @@ var direction = Vector2.DOWN
 var knockback_vector = Vector2.DOWN
 var damage = 1
 var charge_ratio = 0.0
-const HITBOX_WIDTH = 1.0
-const OUTER_WIDTH = 3.0
+const HITBOX_WIDTH = 5
 var beam_phase = 0.0
 var lifetime = 0.2
 var full_lifetime = 0.2
@@ -14,11 +13,12 @@ var hit_targets = {}
 var beam_length = 32.0
 var beam_width = 4.0
 
+const WIZARD_WIDTH = 22.0 / 3.0
+var hitbox_width = beam_width
+
 onready var collision_shape = $CollisionShape2D
 
 func _ready():
-	scale = Vector2.ONE
-	collision_shape.scale = Vector2.ONE
 	collision_shape.shape = collision_shape.shape.duplicate()
 
 func configure(facing, charge):
@@ -31,7 +31,7 @@ func configure(facing, charge):
 	damage = 1 + int(floor(charge_ratio * 7.0))
 	var viewport_reach = max(get_viewport_rect().size.x, get_viewport_rect().size.y) * 1.5
 	beam_length = viewport_reach * (1.0 + charge_ratio * 0.35)
-	beam_width = 2.0 + charge_ratio * 0.5
+	beam_width = WIZARD_WIDTH * (0.85 + charge_ratio * 0.15)
 	lifetime = 0.3 + charge_ratio * 1.2
 	full_lifetime = lifetime
 	collision_shape.shape.extents = Vector2(beam_length * 0.5, HITBOX_WIDTH * 0.5)
@@ -49,10 +49,16 @@ func _physics_process(delta):
 		queue_free()
 		return
 	update()
+	var perpendicular = Vector2(-direction.y, direction.x)
 	for area in get_overlapping_areas():
+		if area.name != "HurtBox":
+			continue
 		if area.get("invincible") == true:
 			continue
-		var distance_along_beam = (area.global_position - global_position).dot(direction)
+		var area_offset = area.global_position - global_position
+		if abs(area_offset.dot(perpendicular)) > 2.0:
+			continue
+		var distance_along_beam = area_offset.dot(direction)
 		if distance_along_beam < 0.0 or distance_along_beam > beam_length:
 			continue
 		var target = area.get_parent()
@@ -67,11 +73,11 @@ func _draw():
 	color = Color(color.r * flicker, color.g * flicker, color.b * flicker, 1.0)
 	var opacity = clamp(lifetime / full_lifetime, 0.0, 1.0)
 	var perpendicular = Vector2(-direction.y, direction.x)
-	var start = direction * 4.0
-	var end = direction * (beam_length - 4.0)
-	draw_line(start, end, Color(color.r, color.g, color.b, 0.14 * opacity), OUTER_WIDTH, true)
+	var start = direction * (WIZARD_WIDTH * 0.5)
+	var end = direction * (beam_length - WIZARD_WIDTH * 0.5)
+	draw_line(start, end, Color(color.r, color.g, color.b, 0.14 * opacity), WIZARD_WIDTH, true)
 	draw_line(start, end, Color(color.r, color.g, color.b, 0.42 * opacity), beam_width * 0.72, true)
 	draw_line(start, end, Color(color.r, color.g, color.b, opacity), beam_width * 0.42, true)
 	draw_line(start - perpendicular, end - perpendicular, Color(0.92, 1.0, 0.96, 0.88 * opacity), max(1.0, beam_width * 0.18), true)
-	draw_circle(end, 1.5, Color(color.r, color.g, color.b, opacity))
+	draw_circle(end, WIZARD_WIDTH * 0.5, Color(color.r, color.g, color.b, opacity))
 	draw_circle(end, max(1.0, beam_width * 0.2), Color(1.0, 1.0, 0.94, opacity))
