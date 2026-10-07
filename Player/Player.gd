@@ -157,7 +157,7 @@ func _fire_magic_beam():
 	var charge_ratio = clamp(magic_charge_time / MAX_CHARGE_TIME, 0.0, 1.0)
 	var beam = MagicBeam.instance()
 	add_child(beam)
-	beam.position = Vector2(0, -8) + roll_vector * 15.0
+	beam.position = roll_vector * 8.0
 	beam.configure(roll_vector, charge_ratio)
 	is_charging_magic = false
 	magic_charge_time = 0.0
