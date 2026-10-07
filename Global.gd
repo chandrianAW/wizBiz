@@ -1,5 +1,7 @@
 extends Node
 
+const MAX_MANA = 100.0
+
 export(int) var max_health = 5 setget set_max_health
 var health           = max_health setget set_health
 var health_bar       = 0 setget set_health_bar
@@ -10,7 +12,7 @@ var experience       = 0
 var visited          = ["Level1"]
 var key_founded      = []
 var opened_doors     = []
-var mana             = 0
+var mana             = MAX_MANA
 var axe_equipped     = false
 var pickaxe_equipped = false
 var repellent        = false
@@ -147,6 +149,7 @@ func save_game():
 		"max_health"       : max_health,
 		"health"           : health,
 		"player"           : player,
+		"mana"             : mana,
 		"experience"       : experience,
 		"visited"          : visited,
 		"honeycombs"       : honeycombs,
@@ -194,6 +197,7 @@ func load_game():
 		max_health       = data.max_health
 		health           = data.health
 		player           = data.player
+		mana             = clamp(float(data.get("mana", MAX_MANA)), 0.0, MAX_MANA)
 		experience       = int(data.get("experience", 0))
 		emit_signal("experience_changed", experience)
 		visited          = data.visited

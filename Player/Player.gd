@@ -9,6 +9,9 @@ onready var blinkAnimationPlayer = $BlinkAnimationPlayer
 
 const MagicBeam = preload("res://Player/MagicBeam.tscn")
 const MAX_CHARGE_TIME = 2.5
+const MAGIC_BASE_MANA_COST = 5.0
+const MAGIC_CHARGE_MANA_COST = 25.0
+const MANA_REGEN_PER_SECOND = 4.0
 
 onready var Player               = preload("res://Player/Wizard.png")
 onready var Ledi                 = preload("res://Player/Ledi.png")
@@ -28,6 +31,7 @@ var can_move                     = true
 var can_attack                   = true 
 var is_charging_magic            = false
 var magic_charge_time            = 0.0
+var mana_regen_timer             = 0.0
 
 var state                        = MOVE
 enum { MOVE, ROLL, ATTACK, TRANSITION,}
@@ -64,6 +68,7 @@ func _process(delta):
 			TRANSITION:
 					   transition_state()
 	_update_magic_charge(delta)
+	_regenerate_mana(delta)
 	_invisible()
 
 ###################################################### Movement ###
@@ -158,6 +163,14 @@ func _update_magic_charge(delta):
 
 func _fire_magic_beam():
 	var charge_ratio = clamp(magic_charge_time / MAX_CHARGE_TIME, 0.0, 1.0)
+	if Global.mana < MAGIC_BASE_MANA_COST:
+		_cancel_magic_charge()
+		return
+	var affordable_charge = clamp((Global.mana - MAGIC_BASE_MANA_COST) / MAGIC_CHARGE_MANA_COST, 0.0, 1.0)
+	charge_ratio = min(charge_ratio, affordable_charge)
+	var mana_cost = MAGIC_BASE_MANA_COST + MAGIC_CHARGE_MANA_COST * charge_ratio
+	Global.mana = max(0.0, Global.mana - mana_cost)
+	emit_signal("update_mana")
 	var beam = MagicBeam.instance()
 	add_child(beam)
 	beam.position = beam_direction * 8.0
@@ -165,6 +178,20 @@ func _fire_magic_beam():
 	is_charging_magic = false
 	magic_charge_time = 0.0
 	update()
+
+func _regenerate_mana(delta):
+	if Global.mana >= Global.MAX_MANA:
+		mana_regen_timer = 0.0
+		return
+	mana_regen_timer += delta
+	if mana_regen_timer < 0.25:
+		return
+	var elapsed = mana_regen_timer
+	mana_regen_timer = 0.0
+	var previous_mana = Global.mana
+	Global.mana = min(Global.MAX_MANA, Global.mana + MANA_REGEN_PER_SECOND * elapsed)
+	if Global.mana != previous_mana:
+		emit_signal("update_mana")
 
 func _cancel_magic_charge():
 	is_charging_magic = false

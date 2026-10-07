@@ -73,11 +73,8 @@ func _on_update_status():
 	else:
 		$Item/Honey.visible = false
 
-	if Global.mana > 0:
-		$ManaBar/Bar.rect_size.x = Global.mana
-		$ManaBar.visible = true
-	else:
-		$ManaBar.visible = false
+	$ManaBar/Bar.rect_size.x = clamp(Global.mana, 0.0, Global.MAX_MANA)
+	$ManaBar.visible = true
 
 ################################### fade effect ###################
 func _fade_in():
