@@ -6,6 +6,7 @@ var damage = 1
 var charge_ratio = 0.0
 var beam_length = 32.0
 var beam_width = 4.0
+const WIZARD_WIDTH = 26.0
 var beam_phase = 0.0
 var lifetime = 0.2
 var full_lifetime = 0.2
@@ -26,10 +27,10 @@ func configure(facing, charge):
 	damage = 1 + int(floor(charge_ratio * 7.0))
 	var viewport_reach = max(get_viewport_rect().size.x, get_viewport_rect().size.y) * 1.5
 	beam_length = viewport_reach * (1.0 + charge_ratio * 0.35)
-	beam_width = 3.0 + charge_ratio * 21.0
+	beam_width = WIZARD_WIDTH * (0.85 + charge_ratio * 0.15)
 	lifetime = 0.3 + charge_ratio * 1.2
 	full_lifetime = lifetime
-	collision_shape.shape.extents = Vector2(beam_length * 0.5, beam_width * 0.5)
+	collision_shape.shape.extents = Vector2(beam_length * 0.5, WIZARD_WIDTH * 0.5)
 	collision_shape.position = Vector2(beam_length * 0.5, 0.0)
 	update()
 
@@ -57,11 +58,11 @@ func _draw():
 	var color = Color(0.34, 0.9, 1.0).linear_interpolate(Color(1.0, 0.73, 0.32), charge_ratio)
 	color = Color(color.r * flicker, color.g * flicker, color.b * flicker, 1.0)
 	var opacity = clamp(lifetime / full_lifetime, 0.0, 1.0)
-	var start = Vector2.ZERO
-	var end = Vector2(beam_length, 0.0)
-	draw_line(start, end, Color(color.r, color.g, color.b, 0.14 * opacity), beam_width + 4.0, true)
-	draw_line(start, end, Color(color.r, color.g, color.b, 0.42 * opacity), beam_width + 1.75, true)
-	draw_line(start, end, Color(color.r, color.g, color.b, opacity), beam_width, true)
-	draw_line(Vector2(0.0, -1.0), Vector2(beam_length, -1.0), Color(0.92, 1.0, 0.96, 0.88 * opacity), max(1.0, beam_width * 0.2), true)
-	draw_circle(end, beam_width * 0.65, Color(color.r, color.g, color.b, opacity))
-	draw_circle(end, max(1.0, beam_width * 0.24), Color(1.0, 1.0, 0.94, opacity))
+	var start = Vector2(WIZARD_WIDTH * 0.5, 0.0)
+	var end = Vector2(beam_length - WIZARD_WIDTH * 0.5, 0.0)
+	draw_line(start, end, Color(color.r, color.g, color.b, 0.14 * opacity), WIZARD_WIDTH, true)
+	draw_line(start, end, Color(color.r, color.g, color.b, 0.42 * opacity), beam_width * 0.72, true)
+	draw_line(start, end, Color(color.r, color.g, color.b, opacity), beam_width * 0.42, true)
+	draw_line(Vector2(start.x, -1.0), Vector2(end.x, -1.0), Color(0.92, 1.0, 0.96, 0.88 * opacity), max(1.0, beam_width * 0.18), true)
+	draw_circle(end, WIZARD_WIDTH * 0.5, Color(color.r, color.g, color.b, opacity))
+	draw_circle(end, max(1.0, beam_width * 0.2), Color(1.0, 1.0, 0.94, opacity))
